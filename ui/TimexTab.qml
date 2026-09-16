@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// timex · ui — Weather settings tab (timex subsystem).
+// timex · ui — Timex settings tab (provider, city, key, layout).
 //
 // Provider-driven weather: pick a provider and fill only what it needs
 // (a city, or a city + API key). No fallbacks: the engine runs exactly the
@@ -181,7 +181,7 @@ Item {
             panelShowFeels: uiPanelFeels
         });
         flash("Saved");
-        refreshWeather();
+        refreshTimex();
     }
 
     function rotateOrder() {
@@ -198,7 +198,7 @@ Item {
     function bumpCalendarSize(d) { uiCalendarSize = Math.max(0.8, Math.min(1.2, Math.round((uiCalendarSize + d) * 100) / 100)); saveDebounce.restart(); }
     function bumpPanelSize(d) { uiPanelSize = Math.max(0.8, Math.min(1.2, Math.round((uiPanelSize + d) * 100) / 100)); saveDebounce.restart(); }
 
-    function refreshWeather() {
+    function refreshTimex() {
         Quickshell.execDetached(["bash", "-c",
             cliPath + " --invalidate >/dev/null 2>&1; " + cliPath + " --getdata >/dev/null 2>&1"]);
         snapshotTimer.restart();
@@ -448,7 +448,7 @@ Item {
 
     // ════ Cuerpo ════
     Flickable {
-        id: weatherFlickable
+        id: timexFlickable
         anchors.fill: parent
         contentWidth: width
         contentHeight: wCol.implicitHeight + root.s(100)
@@ -836,7 +836,7 @@ Item {
                 }
             }
 
-            // ── Box 4: Weather data ──────────────────────────────────
+            // ── Box 4: Timex data ────────────────────────────────────
             Rectangle {
                 id: wBox4
                 Layout.fillWidth: true
@@ -857,7 +857,7 @@ Item {
                     spacing: root.s(10)
 
                     CardHead {
-                        icon: "󰙦"; title: "Weather data"
+                        icon: "󰙦"; title: "Timex data"
                         subtitle: root.flashOn ? root.flashText
                                                : "Saved automatically · last fetch " + root.updatedText
                         active: wBox4.isActive
@@ -902,7 +902,7 @@ Item {
                             MouseArea {
                                 id: refMa
                                 anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                onClicked: { root.refreshWeather(); root.flash("Refreshing…"); }
+                                onClicked: { root.refreshTimex(); root.flash("Refreshing…"); }
                             }
                         }
                     }

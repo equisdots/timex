@@ -239,7 +239,7 @@ Item {
     property int weatherAnimDirection: 1
 
     // -------------------------------------------------------------------------
-    // TIMEX UI (Settings → Shell → Weather → Timex layout)
+    // TIMEX UI (Settings → Shell → Timex)
     // -------------------------------------------------------------------------
     readonly property var timexUi: (Config.rev, Personalization.normalize("timex", Config.rawSettings.timex))
     readonly property int txGapPx: Math.round(Math.max(2, Math.min(40, timexUi.forecastGap)) * window.sf)
@@ -639,7 +639,7 @@ Item {
                     }
                 }
 
-                // HOURLY FORECAST — layout configurable (Settings → Weather → Timex layout)
+                // HOURLY FORECAST — layout configurable (Settings → Shell → Timex)
                 Row {
                     id: hourlyRow
                     visible: window.timexUi.forecastEnabled && hourRepeater.count > 0
