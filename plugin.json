@@ -11,6 +11,11 @@
   "provides": {
     "panels": {
       "calendar": { "comp": "ui/TimexPopup.qml", "w": 1450, "h": 750, "label": "Timex" }
+    },
+    "bar": {
+      "modules": {
+        "weather": { "comp": "bar/Weather.qml", "label": "Timex", "icon": "\uf0590" }
+      }
     }
   },
   "defaultEnabled": true

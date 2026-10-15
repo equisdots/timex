@@ -24,6 +24,9 @@ timex/
     TimexPopup.qml         calendar panel: clock, month calendar, hourly
                            forecast row and day panel (SUPER + S target);
                            shipped as provides.panels.calendar
+  bar/
+    Weather.qml            bar island (provides.bar.modules.weather): current
+                           glyph + temperature, self-polled from the engine
   settings/
     TimexPage.qml          the plugin's settings page (provider/city/key +
                            layout), shown as p_timex in the Plugins group
@@ -57,9 +60,11 @@ timex status                     # provider|city|unit|configured|key_set|last_up
 Deployment is the equisdots plugin convention (`dots plugins add timex`; it
 also installs by default): the whole repo lands at
 `~/.config/hypr/scripts/quickshell/ui/plugins/timex/` and the popup, the
-settings page and the shell's `weather.sh` shim resolve the engine from there
-across deploy layouts (managed tree, user plugin, classic `~/.local/bin`
-wrapper). `TIMEX_CLI` overrides the resolver for tests.
+settings page and the bar island resolve the engine from there across deploy
+layouts (managed tree, user plugin, classic `~/.local/bin` wrapper). The
+shell-side `weather.sh` shim was removed with the conversion —
+`bar/Weather.qml` polls the engine itself. `TIMEX_CLI` overrides the resolver
+for tests.
 
 ## Configuration
 
