@@ -16,6 +16,24 @@
       "modules": {
         "weather": { "comp": "bar/Weather.qml", "label": "Timex", "icon": "\uf0590" }
       }
+    },
+    "widgets": {
+      "faces": {
+        "weather": {
+          "name": "Timex",
+          "icon": "\uf0590",
+          "defaultWidth": 300,
+          "defaultHeight": 140,
+          "defaultVariant": "compact",
+          "stretchWidth": false,
+          "requiresFilePicker": false,
+          "variants": {
+            "compact": { "comp": "widgets/weather/WeatherFaceCompact.qml", "icon": "1", "label": "Compact" },
+            "full": { "comp": "widgets/weather/WeatherFaceFull.qml", "icon": "2", "label": "Full" },
+            "round": { "comp": "widgets/weather/WeatherFaceRound.qml", "icon": "3", "label": "Round" }
+          }
+        }
+      }
     }
   },
   "defaultEnabled": true
