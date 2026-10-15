@@ -48,7 +48,7 @@ Item {
     // the script: ~/.cache/quickshell/timex.
     function envOr(name, fallback) {
         let v = Quickshell.env(name);
-        return v !== "" ? v : fallback;
+        return (v !== "" && v !== undefined && v !== null) ? v : fallback;
     }
 
     readonly property string weatherFilePath: root.envOr("QS_CACHE_TIMEX",
@@ -221,8 +221,10 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: Theme.surface0
+        color: Theme.widgetFill
         radius: Theme.clampedBorderRadius
+        border.width: 1
+        border.color: Theme.widgetHairline
         clip: true
 
         RowLayout {
