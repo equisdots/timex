@@ -5,12 +5,14 @@ Time & weather engine for the [equisdots](https://github.com/equisdots) desktop
 interfaces it feeds (bar module, calendar popup, desktop faces — wired in the
 shell).
 
-Version: **0.1.0** · License: MIT
+Version: **0.2.0** · License: MIT
 
 ## Architecture
 
 ```
 timex/
+  plugin.json              equisdots plugin manifest (panel + settings page)
+  hypr.lua                 SUPER+S opens the calendar panel (SDK: mod.bind)
   core/timex.sh            dispatcher: provider selection, cache, CLI, keys
   api/
     icons.sh               condition mappings (OWM codes · WMO codes · text)
@@ -18,10 +20,13 @@ timex/
       open-meteo.sh        no key · city or "lat,lon" (geocoding included)
       wttr.sh              no key · city
       openweather.sh       API key + city (geocoding included)
-  ui/                      QML (deployed into the shell as ui/timex/)
-    TimexPopup.qml         calendar popup: clock, month calendar, hourly
-                           forecast row and day panel (SUPER + S target)
-    TimexTab.qml           settings tab (provider/city/key/unit + layout)
+  ui/
+    TimexPopup.qml         calendar panel: clock, month calendar, hourly
+                           forecast row and day panel (SUPER + S target);
+                           shipped as provides.panels.calendar
+  settings/
+    TimexPage.qml          the plugin's settings page (provider/city/key +
+                           layout), shown as p_timex in the Plugins group
 ```
 
 **No fallbacks:** the engine runs exactly the selected provider. If the
@@ -49,20 +54,22 @@ timex keys list                  # NAME|label|where|0-1
 timex status                     # provider|city|unit|configured|key_set|last_update|last_error
 ```
 
-On the desktop the wrapper lives at `~/.local/bin/timex`
-(`~/.local/share/equisdots/timex` is the deployed copy; `dots` handles that).
-The shell's old `calendar/weather.sh` path is now a thin shim over the CLI, so
-bar/calendar callers did not change.
+Deployment is the equisdots plugin convention (`dots plugins add timex`; it
+also installs by default): the whole repo lands at
+`~/.config/hypr/scripts/quickshell/ui/plugins/timex/` and the popup, the
+settings page and the shell's `weather.sh` shim resolve the engine from there
+across deploy layouts (managed tree, user plugin, classic `~/.local/bin`
+wrapper). `TIMEX_CLI` overrides the resolver for tests.
 
 ## Configuration
 
 - `settings.json → "timex"`: `{ provider, city, unit }` (no secrets).
-- UI layout (Settings → Shell → Timex): extra keys in the
+- UI layout (the plugin's Timex settings page): extra keys in the
   same object, applied live by the calendar popup —
   `forecastEnabled`, `forecastPosition` (`below`/`above`), `forecastSize`,
   `forecastGap`, `forecastHours`, `forecastShowTime/Icon/Temp`,
-  `forecastOrder` (CSV of `time,icon,temp`) and `clockScale`. Defaults live in
-  the shell's `core/Personalization.js` (`"timex"` section).
+  `forecastOrder` (CSV of `time,icon,temp`) and `clockScale`. Defaults are
+  plugin-owned (popup/page).
 - API keys: `~/.local/state/quickshell/timex/keys.conf` (chmod 600), written
   through `timex keys set` — never stored in `settings.json`.
 - Cache: `~/.cache/quickshell/timex/weather.json` (contract kept from the old

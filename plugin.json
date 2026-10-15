@@ -1,0 +1,17 @@
+{
+  "id": "timex",
+  "name": "Timex",
+  "version": "0.2.0",
+  "author": "xscriptor",
+  "description": "Time & weather: calendar/forecast popup, provider-driven engine and its settings page",
+  "type": "mixed",
+  "compat": { "shell": ">=0.1.0", "hyprland": ">=0.55" },
+  "scope": "timex",
+  "settings": { "page": "settings/TimexPage.qml", "label": "Timex", "icon": "" },
+  "provides": {
+    "panels": {
+      "calendar": { "comp": "ui/TimexPopup.qml", "w": 1450, "h": 750, "label": "Timex" }
+    }
+  },
+  "defaultEnabled": true
+}

@@ -1,3 +1,6 @@
+// TimexPopup — Timex's calendar/weather panel (equisdots plugin standard).
+// Loaded by the shell's panel host from ui/plugins/timex/ (manifest
+// provides.panels.calendar); the qs.* imports resolve against the shell tree.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -5,9 +8,8 @@ import QtCore
 import Quickshell
 import Quickshell.Io
 import QtQuick.Window
-import "../../core"
-import "../../core/Personalization.js" as Personalization
-import "../bar"
+import qs.core
+import qs.ui.bar
 
 Item {
     id: window
@@ -35,7 +37,7 @@ Item {
     // DYNAMIC MASTER WINDOW SCALING (Fixes Window Clipping)
     // -------------------------------------------------------------------------
     property real targetMasterHeight: window.scheduleModuleExists ? Math.round(750 * window.sf) : Math.round(510 * window.sf)
-    property real targetMasterWidth: Math.round(Personalization.value("calendar", Config.rawSettings.calendar, "popupWidth") * window.sf)
+    property real targetMasterWidth: Math.round(((Config.rawSettings.calendar || {}).popupWidth || 1450) * window.sf)
     
     onTargetMasterHeightChanged: {
         if (typeof masterWindow !== "undefined") {
@@ -105,10 +107,9 @@ Item {
     readonly property color red: _theme.red
 
     readonly property string scriptsDir: Quickshell.env("HOME") + "/.config/hypr/scripts/quickshell/ui/bar/popups/calendar"
-    // timex engine CLI (wrapper installed by dots; TIMEX_CLI overrides for tests).
-    readonly property string timexCli: Quickshell.env("TIMEX_CLI")
-        ? Quickshell.env("TIMEX_CLI")
-        : (Quickshell.env("HOME") + "/.local/bin/timex")
+    // timex engine: resolve the plugin's copy across deploy layouts (managed
+    // shell tree, user plugin, classic wrapper). TIMEX_CLI overrides for tests.
+    readonly property string timexCmd: "T=; for c in \"$TIMEX_CLI\" \"$HOME/.config/hypr/scripts/quickshell/ui/plugins/timex/core/timex.sh\" \"$HOME/.config/hypr/plugins-user/timex/core/timex.sh\" \"$HOME/.local/bin/timex\"; do [ -n \"$c\" ] && [ -f \"$c\" ] && { T=\"$c\"; break; }; done; [ -n \"$T\" ] && exec bash \"$T\""
 
     // -------------------------------------------------------------------------
     // TIME OF DAY DYNAMIC COLORS
@@ -241,7 +242,24 @@ Item {
     // -------------------------------------------------------------------------
     // TIMEX UI (Settings → Shell → Timex)
     // -------------------------------------------------------------------------
-    readonly property var timexUi: (Config.rev, Personalization.normalize("timex", Config.rawSettings.timex))
+    // Plugin-owned defaults for the settings.json → "timex" layout section
+    // (the Timex settings page edits the same object).
+    readonly property var timexUi: {
+        Config.rev;
+        let out = {
+            forecastEnabled: true, forecastPosition: "below", forecastSize: 1.0,
+            forecastGap: 16, forecastHours: 8, forecastShowTime: true,
+            forecastShowIcon: true, forecastShowTemp: true,
+            forecastOrder: "time,icon,temp", clockScale: 1.0,
+            clockShowSeconds: true, clockShowDate: true, calendarEnabled: true,
+            calendarSize: 1.0, calendarWeekStart: "monday", panelEnabled: true,
+            panelSize: 1.0, panelShowWind: true, panelShowHumidity: true,
+            panelShowPop: true, panelShowFeels: true
+        };
+        let c = Config.rawSettings.timex;
+        if (c && typeof c === "object") for (let k in out) if (c[k] !== undefined) out[k] = c[k];
+        return out;
+    }
     readonly property int txGapPx: Math.round(Math.max(2, Math.min(40, timexUi.forecastGap)) * window.sf)
     readonly property var txFields: {
         let order = String(timexUi.forecastOrder || "time,icon,temp").split(",");
@@ -361,7 +379,7 @@ Item {
 
     Process {
         id: weatherPoller
-        command: [window.timexCli, "--json"]
+        command: ["bash", "-c", window.timexCmd + " --json"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
