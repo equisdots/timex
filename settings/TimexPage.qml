@@ -1,57 +1,56 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// timex · ui — Timex settings tab (provider, city, key, layout).
+// TimexPage — the Timex plugin's own settings page (equisdots plugin
+// standard). Deployed with the plugin UI to <quickshell>/ui/plugins/timex/
+// settings/ and loaded by the editor as the dynamic p_timex page.
 //
 // Provider-driven weather: pick a provider and fill only what it needs
 // (a city, or a city + API key). No fallbacks: the engine runs exactly the
-// selected provider (core/timex.sh, deployed as ~/.local/bin/timex).
+// selected provider (core/timex.sh, shipped with this plugin).
 //
-// Live settings: settings.json -> "timex": { provider, city, unit }; secrets
-// go through `timex keys set` (state file, chmod 600). The city field offers
-// Open-Meteo geocoding suggestions; the data card shows the engine snapshot,
-// its age and any error reported by the last fetch.
+// Live settings: settings.json -> "timex": { provider, city, unit, layout };
+// secrets go through `timex keys set` (state file, chmod 600). The city field
+// offers Open-Meteo geocoding suggestions; the data card shows the engine
+// snapshot, its age and any error reported by the last fetch.
 //
-// Shared-tab contract: `property var host` (colors, s(), highlightedBox,
-// clearHighlight()), same as the rest of ui/settings/tabs/*.qml.
+// Contract: receives the BarEditor root as `bar` (bar.s(), bar.colors) and
+// the injected SDK handle as `host` (equisdots/plugin-sdk).
 // ═══════════════════════════════════════════════════════════════════════════
 
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import "../../core"
+import qs.core
 
 Item {
     id: root
 
-    // ════ Forwarding al host ════
+    // ════ Contract ════
+    property var bar: null
     property var host: null
-    readonly property color base: host ? host.base : "#363537"
-    readonly property color blue: host ? host.blue : "#5ad4e6"
-    readonly property color green: host ? host.green : "#7bd88f"
-    readonly property color overlay0: host ? host.overlay0 : "#f7f1ff"
-    readonly property color peach: host ? host.peach : "#fd9353"
-    readonly property color red: host ? host.red : "#fc618d"
-    readonly property color subtext0: host ? host.subtext0 : "#f7f1ff"
-    readonly property color subtext1: host ? host.subtext1 : "#f7f1ff"
-    readonly property color surface0: host ? host.surface0 : "#363537"
-    readonly property color surface1: host ? host.surface1 : "#363537"
-    readonly property color surface2: host ? host.surface2 : "#363537"
-    readonly property color text: host ? host.text : "#f7f1ff"
-    readonly property color yellow: host ? host.yellow : "#fce566"
-    function s(val) { return host ? host.s(val) : val; }
-    property int highlightedBox: host ? host.highlightedBox : -1
-    onHighlightedBoxChanged: {
-        if (host && host.highlightedBox !== highlightedBox) {
-            host.highlightedBox = highlightedBox;
-            highlightedBox = Qt.binding(function() { return host ? host.highlightedBox : -1; });
-        }
-    }
-    function clearHighlight() { if (host) host.clearHighlight(); }
 
-    // ════ timex engine (CLI) ════
-    readonly property string cliPath: Quickshell.env("TIMEX_CLI")
-        ? Quickshell.env("TIMEX_CLI")
-        : (Quickshell.env("HOME") + "/.local/bin/timex")
+    readonly property color base: bar ? bar.colors.base : "#363537"
+    readonly property color blue: bar ? bar.colors.blue : "#5ad4e6"
+    readonly property color green: bar ? bar.colors.green : "#7bd88f"
+    readonly property color overlay0: bar ? bar.colors.overlay0 : "#f7f1ff"
+    readonly property color peach: bar ? bar.colors.peach : "#fd9353"
+    readonly property color red: bar ? bar.colors.red : "#fc618d"
+    readonly property color subtext0: bar ? bar.colors.subtext0 : "#f7f1ff"
+    readonly property color subtext1: bar ? bar.colors.subtext1 : "#f7f1ff"
+    readonly property color surface0: bar ? bar.colors.surface0 : "#363537"
+    readonly property color surface1: bar ? bar.colors.surface1 : "#363537"
+    readonly property color surface2: bar ? bar.colors.surface2 : "#363537"
+    readonly property color text: bar ? bar.colors.text : "#f7f1ff"
+    readonly property color yellow: bar ? bar.colors.yellow : "#fce566"
+    function s(val) { return bar ? bar.s(val) : val; }
+    property int highlightedBox: -1
+    function clearHighlight() { highlightedBox = -1; }
+
+    // ════ timex engine ════
+    // Resolve the plugin's copy across deploy layouts (managed shell tree,
+    // user plugin, classic wrapper). TIMEX_CLI overrides for tests.
+    readonly property string timexCmd: "T=; for c in \"$TIMEX_CLI\" \"$HOME/.config/hypr/scripts/quickshell/ui/plugins/timex/core/timex.sh\" \"$HOME/.config/hypr/plugins-user/timex/core/timex.sh\" \"$HOME/.local/bin/timex\"; do [ -n \"$c\" ] && [ -f \"$c\" ] && { T=\"$c\"; break; }; done; [ -n \"$T\" ] && exec bash \"$T\""
+    function shq(v) { return "'" + String(v).replace(/'/g, "'\\''") + "'" }
 
     // ════ Config (settings.json -> timex) ════
     property string provider: "open-meteo"
@@ -200,7 +199,7 @@ Item {
 
     function refreshTimex() {
         Quickshell.execDetached(["bash", "-c",
-            cliPath + " --invalidate >/dev/null 2>&1; " + cliPath + " --getdata >/dev/null 2>&1"]);
+            root.timexCmd + " --invalidate >/dev/null 2>&1; " + root.timexCmd + " --getdata >/dev/null 2>&1"]);
         snapshotTimer.restart();
     }
 
@@ -242,7 +241,7 @@ Item {
 
     Process {
         id: providersProc
-        command: [root.cliPath, "providers", "list"]
+        command: ["bash", "-c", root.timexCmd + " providers list"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -260,7 +259,7 @@ Item {
 
     Process {
         id: keysProc
-        command: [root.cliPath, "keys", "list"]
+        command: ["bash", "-c", root.timexCmd + " keys list"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -278,7 +277,7 @@ Item {
 
     Process {
         id: statusProc
-        command: [root.cliPath, "status"]
+        command: ["bash", "-c", root.timexCmd + " status"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -291,7 +290,7 @@ Item {
 
     Process {
         id: snapshotProc
-        command: [root.cliPath, "snapshot"]
+        command: ["bash", "-c", root.timexCmd + " snapshot"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -310,7 +309,7 @@ Item {
     Process {
         id: geocodeProc
         property string query: ""
-        command: [root.cliPath, "geocode", query]
+        command: ["bash", "-c", root.timexCmd + " geocode " + root.shq(query)]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -329,7 +328,7 @@ Item {
 
     Process {
         id: testProc
-        command: [root.cliPath, "test"]
+        command: ["bash", "-c", root.timexCmd + " test"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -761,7 +760,7 @@ Item {
                                 passwordCharacter: "•"
                                 onAccepted: {
                                     if (text.trim() === "") return;
-                                    Quickshell.execDetached([root.cliPath, "keys", "set", "OPENWEATHER_KEY", text.trim()]);
+                                    Quickshell.execDetached(["bash", "-c", root.timexCmd + " keys set OPENWEATHER_KEY " + root.shq(text.trim())]);
                                     text = "";
                                     root.keyTest = "";
                                     keysRefreshTimer.restart();
@@ -825,7 +824,7 @@ Item {
                                 id: rmMa
                                 anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    Quickshell.execDetached([root.cliPath, "keys", "remove", "OPENWEATHER_KEY"]);
+                                    Quickshell.execDetached(["bash", "-c", root.timexCmd + " keys remove OPENWEATHER_KEY"]);
                                     root.keyTest = "";
                                     keysRefreshTimer.restart();
                                     root.flash("Key removed");

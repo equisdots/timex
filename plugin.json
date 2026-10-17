@@ -1,0 +1,40 @@
+{
+  "id": "timex",
+  "name": "Timex",
+  "version": "0.2.0",
+  "author": "xscriptor",
+  "description": "Time & weather: calendar/forecast popup, provider-driven engine and its settings page",
+  "type": "mixed",
+  "compat": { "shell": ">=0.1.0", "hyprland": ">=0.55" },
+  "scope": "timex",
+  "settings": { "page": "settings/TimexPage.qml", "label": "Timex", "icon": "" },
+  "provides": {
+    "panels": {
+      "calendar": { "comp": "ui/TimexPopup.qml", "w": 1450, "h": 750, "label": "Timex" }
+    },
+    "bar": {
+      "modules": {
+        "weather": { "comp": "bar/Weather.qml", "label": "Timex", "icon": "\uf0590" }
+      }
+    },
+    "widgets": {
+      "faces": {
+        "weather": {
+          "name": "Timex",
+          "icon": "\uf0590",
+          "defaultWidth": 300,
+          "defaultHeight": 140,
+          "defaultVariant": "compact",
+          "stretchWidth": false,
+          "requiresFilePicker": false,
+          "variants": {
+            "compact": { "comp": "widgets/weather/WeatherFaceCompact.qml", "icon": "1", "label": "Compact" },
+            "full": { "comp": "widgets/weather/WeatherFaceFull.qml", "icon": "2", "label": "Full" },
+            "round": { "comp": "widgets/weather/WeatherFaceRound.qml", "icon": "3", "label": "Round" }
+          }
+        }
+      }
+    }
+  },
+  "defaultEnabled": true
+}
