@@ -554,12 +554,32 @@ Item {
         opacity: introMain
 
         Rectangle {
+            id: timexPanel
             anchors.fill: parent
             radius: Math.round(20 * window.sf)
-            color: window.base
+            color: Theme.liquidGlass ? "transparent" : window.base
             border.color: window.surface0
             border.width: 1
             clip: true
+
+            LiquidGlass {
+                anchors.fill: parent
+                enabled: Theme.liquidGlass
+                screenPosOverride: {
+                    const p = timexPanel.mapToItem(null, 0, 0);
+                    return Qt.vector2d(p.x, p.y);
+                }
+                topLeftRadius: Math.round(20 * window.sf)
+                topRightRadius: Math.round(20 * window.sf)
+                bottomLeftRadius: Math.round(20 * window.sf)
+                bottomRightRadius: Math.round(20 * window.sf)
+                tintColor: "#101018"
+                tintAmount: 0.42
+                bezel: Math.max(8, Math.min(20, Math.min(width, height) * 0.25))
+                frost: Math.max(6, Math.min(16, Math.min(width, height) * 0.20))
+                interiorShade: 0.38
+                rim: 0.95
+            }
 
             // =======================================================
             // CENTRAL HERO: THE BREATHING TIME HUB & 3D HOURLY ORBIT
@@ -735,7 +755,8 @@ Item {
                 height: Math.round(420 * window.sf)
                 scale: window.timexUi.calendarSize
                 transformOrigin: Item.TopLeft
-                color: Qt.alpha(window.surface0, 0.2) 
+                color: Theme.liquidGlass ? Qt.rgba(window.base.r, window.base.g, window.base.b, 0.22)
+                    : Qt.alpha(window.surface0, 0.2)
                 radius: Math.round(14 * window.sf)
                 border.color: Qt.alpha(window.surface1, 0.4)
                 border.width: 1
@@ -1142,7 +1163,7 @@ Item {
                     anchors.fill: parent
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 1.0; color: Qt.alpha(window.crust, 0.6) }
+                        GradientStop { position: 1.0; color: Theme.liquidGlass ? "transparent" : Qt.alpha(window.crust, 0.6) }
                     }
                 }
 
